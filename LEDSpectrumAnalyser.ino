@@ -13,7 +13,7 @@
 #define COLUMN      15
 #define ROWS        20
 #define NUM_LEDS    COLUMN * ROWS
-#define LED_PIN     4
+#define LED_PIN     33
 
 /* Global Data */
 CRGB leds[NUM_LEDS];
@@ -31,6 +31,7 @@ led_t ledColours[COLUMN][ROWS];
 
 void setup()
 {
+    Serial.begin(115200);
 
     int count = 0;
     for(int i=0; i<COLUMN; ++i)
@@ -47,9 +48,8 @@ void setup()
 
 void loop()
 {
-    static int i=0;
-    set_hsv_colour(278, 51, 100);
-    full_column(9);
+    set_hsv_colour(0, 100, 100);
+    full_column(10);
     updateLEDs();
 }
 

@@ -23,9 +23,7 @@
                 "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include/compat/",
                 "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include/util/"
             ],
-            "forcedInclude": [
-                "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/cores/arduino/Arduino.h"
-            ],
+            "forcedInclude": [],
             "defines": [
                 "USBCON"
             ],
