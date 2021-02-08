@@ -15,8 +15,9 @@
 #define NUM_LEDS    COLUMN * ROWS
 #define LED_PIN     4
 
-#define SAMPLES     256
-#define AUDIO_PIN   34
+#define SAMPLES     1024
+#define AUDIO_PIN   36
+#define SAMPLING_FREQUENCY  40000
 
 /* Global Data */
 CRGB leds[NUM_LEDS];
@@ -33,12 +34,12 @@ led_t ledColours[COLUMN][ROWS];
 double vReal[SAMPLES];
 double vImag[SAMPLES];
 arduinoFFT FFT = arduinoFFT();
-
-
-
+unsigned int sampling_period_us;
+unsigned long microseconds, newTime;
 
 void setup()
 {
+    Serial.begin(115200);
 
     int count = 0;
     for(int i=0; i<COLUMN; ++i)
@@ -51,17 +52,30 @@ void setup()
     }
     FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
     FastLED.setBrightness(50);
+
+    sampling_period_us = round(1000000 * (1.0 / SAMPLING_FREQUENCY));
 }
 
 void loop()
 {
     for(int i=0; i<SAMPLES; i++)
     {
-        vReal[i] = (analogRead(AUDIO_PIN))/8;
+        newTime = micros();
+        vReal[i] = analogRead(AUDIO_PIN);
         vImag[i] = 0;
+        while((micros() - newTime) < sampling_period_us)
+        {
+            /* wait */
+        }
     }
 
     FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
     FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
     FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
+
+    for(int i=2; i<(SAMPLES/2); i++)
+    {
+        /* sort into led columns */
+        Serial.println(i);
+    }
 }
