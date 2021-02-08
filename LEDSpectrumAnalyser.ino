@@ -83,7 +83,6 @@ void loop()
 
     int step = round(((SAMPLES/2)/COLUMN) + 0.5);           // horrible but works...
     int count = 0;
-    static double max = 0, old_max = 0;
     for(int i=0; i<(SAMPLES/2); i+=step)
     {
         /* sort into led columns */
@@ -94,32 +93,18 @@ void loop()
         }
         ledVALS[count] /= step;
 
-        if(ledVALS[count] > max)
-        {
-            max = ledVALS[count];
-        }
         count ++;
     }
 
-    /* Max: 110468.67 */
-
-    if(old_max != max)
-    {
-        old_max = max;
-        Serial.print("Max: ");
-        Serial.println(max);
-    }
-
-    // for(int i=0; i<COLUMN; i++)
-    // {
-    //     Serial.print(i);
-    //     Serial.print(", ");
-    //     Serial.println(ledVALS[i]);
-    // }
-
     set_hsv_colour(0, 100, 100);
-    full_column(10);
+    full_column();
     updateLEDs();
+}
+
+int normalise_level(int index)
+{
+    int val = ledVALS[index] / 1800.0;
+    return constrain(val, 0, 19);
 }
 
 void updateLEDs()
@@ -141,10 +126,12 @@ void updateLEDs()
     FastLED.show();
 }
 
-void full_column(int level)
+void full_column()
 {
+    int level = 0;
     for(int i=0; i<COLUMN; i++)
     {
+        level = normalise_level(i);
         for(int j=0; j<ROWS; j++)
         {
             if(j <= level)
@@ -159,10 +146,12 @@ void full_column(int level)
     }
 }
 
-void dot_column(int level)
+void dot_column()
 {
+    int level = 0;
     for(int i=0; i<COLUMN; i++)
     {
+        level = normalise_level(i);
         for(int j=0; j<ROWS; j++)
         {
             if(j == level)
