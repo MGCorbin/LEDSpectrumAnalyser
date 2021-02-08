@@ -15,6 +15,9 @@
 #define NUM_LEDS    COLUMN * ROWS
 #define LED_PIN     4
 
+#define SAMPLES     256
+#define AUDIO_PIN   34
+
 /* Global Data */
 CRGB leds[NUM_LEDS];
 typedef struct
@@ -26,6 +29,11 @@ typedef struct
     bool active;
 } led_t;
 led_t ledColours[COLUMN][ROWS];
+
+double vReal[SAMPLES];
+double vImag[SAMPLES];
+arduinoFFT FFT = arduinoFFT();
+
 
 
 
@@ -47,7 +55,13 @@ void setup()
 
 void loop()
 {
-    leds[0] = CRGB::Red;
-    delay(100);
-    leds[0] = CRGB::Black;
+    for(int i=0; i<SAMPLES; i++)
+    {
+        vReal[i] = (analogRead(AUDIO_PIN))/8;
+        vImag[i] = 0;
+    }
+
+    FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+    FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
+    FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
 }
