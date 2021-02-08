@@ -3,10 +3,21 @@
         {
             "name": "Mac",
             "includePath": [
+                "/Users/Marcus/Documents/Arduino/libraries/arduinoFFT/src",
+                "/Users/Marcus/Documents/Arduino/libraries/FastLED/src",
                 "/Users/Marcus/Library/Arduino15/packages/esp32/tools/**",
                 "/Users/Marcus/Documents/Arduino/libraries/**",
                 "/Applications/Arduino.app/Contents/Java/libraries/**",
-                "/Users/Marcus/Library/Arduino15/packages/esp32/hardware/esp32/1.0.4/**"
+                "/Users/Marcus/Library/Arduino15/packages/esp32/hardware/esp32/1.0.4/**",
+                "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/cores/arduino/",
+                "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/libraries/EEPROM/",
+                "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/libraries/SPI/",
+                "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/libraries/SoftwareSerial/",
+                "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/libraries/Wire/",
+                "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include/",
+                "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include/avr/",
+                "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include/compat/",
+                "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include/util/"
             ],
             "forcedInclude": [],
             "defines": [
