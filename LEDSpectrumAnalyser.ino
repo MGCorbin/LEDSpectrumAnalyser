@@ -47,9 +47,10 @@ void setup()
 
 void loop()
 {
-    leds[0] = CRGB::Red;
-    delay(100);
-    leds[0] = CRGB::Black;
+    static int i=0;
+    set_hsv_colour(278, 51, 100);
+    full_column(9);
+    updateLEDs();
 }
 
 void updateLEDs()
@@ -68,15 +69,13 @@ void updateLEDs()
             }
         }
     }
+    FastLED.show();
 }
 
-void full_column()
+void full_column(int level)
 {
-    int level = 0;
-
     for(int i=0; i<COLUMN; i++)
     {
-        level = 5; /* fill in with normalised amplitude data */
         for(int j=0; j<ROWS; j++)
         {
             if(j <= level)
@@ -91,13 +90,10 @@ void full_column()
     }
 }
 
-void dot_column()
+void dot_column(int level)
 {
-    int level = 0;
-
     for(int i=0; i<COLUMN; i++)
     {
-        level = 5; /* fill in with normalised amplitude data */
         for(int j=0; j<ROWS; j++)
         {
             if(j == level)
@@ -114,9 +110,8 @@ void dot_column()
 
 void set_hsv_colour(uint8_t h, uint8_t s, uint8_t v)
 {
-        for(int i=0; i<COLUMN; i++)
+    for(int i=0; i<COLUMN; i++)
     {
-        level = 5; /* fill in with normalised amplitude data */
         for(int j=0; j<ROWS; j++)
         {
             ledColours[i][j].hue = h;

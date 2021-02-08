@@ -3,6 +3,10 @@
         {
             "name": "Mac",
             "includePath": [
+                "/Applications/Arduino.app/Contents/Java/tools/**",
+                "/Users/Marcus/Programming/Arduino/libraries/**",
+                "/Applications/Arduino.app/Contents/Java/hardware/tools/**",
+                "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/**",
                 "/Users/Marcus/Documents/Arduino/libraries/arduinoFFT/src",
                 "/Users/Marcus/Documents/Arduino/libraries/FastLED/src",
                 "/Users/Marcus/Library/Arduino15/packages/esp32/tools/**",
@@ -19,7 +23,9 @@
                 "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include/compat/",
                 "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include/util/"
             ],
-            "forcedInclude": [],
+            "forcedInclude": [
+                "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/cores/arduino/Arduino.h"
+            ],
             "defines": [
                 "USBCON"
             ],
