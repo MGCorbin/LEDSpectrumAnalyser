@@ -1,6 +1,7 @@
 {
-    "programmer": "AVR ISP",
-    "board": "esp32:esp32:esp32",
-    "configuration": "PSRAM=disabled,PartitionScheme=default,CPUFreq=240,FlashMode=qio,FlashFreq=80,FlashSize=4M,UploadSpeed=921600,DebugLevel=none",
-    "sketch": "LEDSpectrumAnalyser.ino"
+    "programmer": "USBasp",
+    "board": "arduino:avr:mega",
+    "configuration": "cpu=atmega2560",
+    "sketch": "LEDSpectrumAnalyser.ino",
+    "port": "/dev/cu.usbmodem143401"
 }

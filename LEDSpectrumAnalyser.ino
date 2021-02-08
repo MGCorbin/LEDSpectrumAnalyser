@@ -15,8 +15,8 @@
 #define NUM_LEDS    COLUMN * ROWS
 #define LED_PIN     4
 
-#define SAMPLES     1024
-#define AUDIO_PIN   36
+#define SAMPLES     64
+#define AUDIO_PIN   A0
 #define SAMPLING_FREQUENCY  40000
 
 /* Global Data */
@@ -36,6 +36,12 @@ double vImag[SAMPLES];
 arduinoFFT FFT = arduinoFFT();
 unsigned int sampling_period_us;
 unsigned long microseconds, newTime;
+
+/*
+* NOTES:
+* Reset samples
+* Reset audio_pin
+*/
 
 void setup()
 {
@@ -65,6 +71,7 @@ void loop()
         vImag[i] = 0;
         while((micros() - newTime) < sampling_period_us)
         {
+            Serial.println("W");
             /* wait */
         }
     }
@@ -76,6 +83,8 @@ void loop()
     for(int i=2; i<(SAMPLES/2); i++)
     {
         /* sort into led columns */
-        Serial.println(i, vReal[i]);      // print every frequency 
+        Serial.print(i);      // print every frequency 
+        Serial.print(", ");
+        Serial.println(vReal[i]);
     }
 }
