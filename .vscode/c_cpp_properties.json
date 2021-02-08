@@ -17,7 +17,8 @@
                 "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include/",
                 "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include/avr/",
                 "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include/compat/",
-                "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include/util/"
+                "/Applications/Arduino.app/Contents/Java/hardware/tools/avr/avr/include/util/",
+                "/Users/Marcus/Programming/Arduino/libraries/**"
             ],
             "forcedInclude": [],
             "defines": [
