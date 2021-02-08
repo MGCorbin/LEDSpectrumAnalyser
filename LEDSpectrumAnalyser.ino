@@ -76,6 +76,6 @@ void loop()
     for(int i=2; i<(SAMPLES/2); i++)
     {
         /* sort into led columns */
-        Serial.println(i);
+        Serial.println(i, vReal[i]);      // print every frequency 
     }
 }
