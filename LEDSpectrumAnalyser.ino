@@ -37,6 +37,7 @@ arduinoFFT FFT = arduinoFFT();
 unsigned int sampling_period_us;
 unsigned long microseconds, newTime;
 double ledVALS[COLUMN];
+double e_val;
 
 /*
 * NOTES:
@@ -47,6 +48,8 @@ double ledVALS[COLUMN];
 void setup()
 {
     Serial.begin(115200);
+
+    e_val = FindE(COLUMN, SAMPLES/2);
 
     int count = 0;
     for(int i=0; i<COLUMN; ++i)
@@ -61,6 +64,36 @@ void setup()
     FastLED.setBrightness(50);
 
     sampling_period_us = round(1000000 * (1.0 / SAMPLING_FREQUENCY));
+}
+
+double FindE(int bands, int bins) {
+  double increment=0.1, eTest, n;
+  int b, count, d;
+
+  for (eTest = 1; eTest < bins; eTest += increment) 
+  {     // Find E through brute force calculations
+    count = 0;
+    for (b = 0; b < bands; b++) 
+    {                        // Calculate full log values
+      n = pow(eTest, b);
+      d = (int)(n + 0.5);
+      count += d;
+    }
+    if (count > bins) 
+    {                        // We calculated over our last bin
+      eTest -= increment;    // Revert back to previous calculation increment
+      increment /= 10.0;     // Get a finer detailed calculation & increment a decimal point lower
+    }
+    else if (count == bins)     // We found the correct E
+    {
+        return eTest;        // Return calculated E
+    }
+    if (increment < 0.0000001)        // Ran out of calculations. Return previous E. Last bin will be lower than (bins-1)
+    {
+      return (eTest - increment);
+    }
+  }
+  return 0;                  // Return error 0
 }
 
 void loop()
