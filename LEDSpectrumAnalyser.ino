@@ -8,12 +8,13 @@
 #include <defs.h>
 #include <types.h>
 #include <FastLED.h>
+#include <math.h>
 
 /* Definitions */
 #define COLUMN      15
 #define ROWS        20
 #define NUM_LEDS    COLUMN * ROWS
-#define LED_PIN     33
+#define LED_PIN     23
 
 #define SAMPLES     1024
 #define AUDIO_PIN   34
@@ -61,7 +62,7 @@ void setup()
         }
     }
     FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-    FastLED.setBrightness(50);
+    FastLED.setBrightness(60);
 
     sampling_period_us = round(1000000 * (1.0 / SAMPLING_FREQUENCY));
 }
@@ -114,30 +115,36 @@ void loop()
     FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
     FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
 
-    int step = round(((SAMPLES/2)/COLUMN) + 0.5);           // horrible but works...
-    int count = 0;
-    for(int i=0; i<(SAMPLES/2); i+=step)
-    {
-        /* sort into led columns */
-        ledVALS[count] = 0;
-        for(int j=0; j<step; j++)
-        {
-            ledVALS[count] += vReal[i+j];
-        }
-        ledVALS[count] /= step;
 
-        count ++;
+    double n;
+    int count = 0, d = 0;
+    for(int i=0; i<COLUMN; i++)
+    {
+        n = pow(e_val, i);          // e is calculated in setup and determines how we space our bins on a log scale
+        d = round(n);
+
+        ledVALS[i] = 0;
+        for(int j=count; j<(count+d); j++)     // depending on the value of d we sum j fft bins into a single led bin
+        {
+            if(vReal[j] > 200.0)
+                ledVALS[i] += vReal[j];
+        }
+        count += d;                      // update count to start with the next fft bin
     }
 
-    set_hsv_colour(0, 100, 100);
+    for(int i=0; i<COLUMN; i++)
+    {
+        Serial.print(i);
+        Serial.print(", ");
+        Serial.println(ledVALS[i]);
+    }
+
+
+
+
+    set_hsv_colour(255, 255, 255);
     full_column();
     updateLEDs();
-}
-
-int normalise_level(int index)
-{
-    int val = ledVALS[index] / 1800.0;
-    return constrain(val, 0, 19);
 }
 
 void updateLEDs()
@@ -210,4 +217,10 @@ void set_hsv_colour(uint8_t h, uint8_t s, uint8_t v)
             ledColours[i][j].val = v;
         }
     }
+}
+
+int normalise_level(int index)
+{
+    int val = ledVALS[index] / 1800.0;
+    return constrain(val, 0, 19);
 }
