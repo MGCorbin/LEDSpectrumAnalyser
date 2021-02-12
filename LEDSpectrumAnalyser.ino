@@ -24,9 +24,9 @@
 CRGB leds[NUM_LEDS];
 typedef struct
 {
-    uint8_t hue;
-    uint8_t sat;
-    uint8_t val;
+    int hue;
+    int sat;
+    int val;
     int nled;
     bool active;
 } led_t;
@@ -39,6 +39,14 @@ unsigned int sampling_period_us;
 unsigned long microseconds, newTime;
 double ledVALS[COLUMN];
 double e_val;
+
+enum LedEffect
+{
+    column_grad,
+    column_static,
+    dot_grad,
+    dot_static
+};
 
 /*
 * NOTES:
@@ -62,7 +70,7 @@ void setup()
         }
     }
     FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-    FastLED.setBrightness(60);
+    FastLED.setBrightness(50);
 
     sampling_period_us = round(1000000 * (1.0 / SAMPLING_FREQUENCY));
 }
@@ -117,34 +125,62 @@ void loop()
 
 
     double n;
-    int count = 0, d = 0;
+    int count = 1, d = 0;
     for(int i=0; i<COLUMN; i++)
     {
         n = pow(e_val, i);          // e is calculated in setup and determines how we space our bins on a log scale
         d = round(n);
-
+  
         ledVALS[i] = 0;
         for(int j=count; j<(count+d); j++)     // depending on the value of d we sum j fft bins into a single led bin
         {
             if(vReal[j] > 200.0)
-                ledVALS[i] += vReal[j];
+                ledVALS[i] += 20*log10(vReal[j]);
         }
         count += d;                      // update count to start with the next fft bin
     }
 
-    for(int i=0; i<COLUMN; i++)
+    reverseArray(ledVALS, 0, COLUMN-1);     // reverse to make bass on left (hardware is inverted)
+
+    static int oldMillis = 0, ledEffect = 1;
+
+    if(millis() - oldMillis > 10000)
     {
-        Serial.print(i);
-        Serial.print(", ");
-        Serial.println(ledVALS[i]);
+        oldMillis = millis();
+
+        // ledEffect++;
+        if(ledEffect > 3)
+        {
+            ledEffect = 0;
+        }
     }
 
+    switch(ledEffect)
+    {
+        case 0: 
+            rainbow_dot();
+            full_column();
+            updateLEDs();
+            break;
 
+        case 1:
+            set_hsv_colour(250, 100, 100);
+            full_column();
+            updateLEDs();
+            break;
 
-
-    set_hsv_colour(255, 255, 255);
-    full_column();
-    updateLEDs();
+        case 2:
+            rainbow_dot();
+            dot_column();
+            updateLEDs();
+            break;
+        
+        case 3:
+            set_hsv_colour(150, 240, 250);
+            dot_column();
+            updateLEDs();
+            break;
+    }
 }
 
 void updateLEDs()
@@ -206,7 +242,7 @@ void dot_column()
     }
 }
 
-void set_hsv_colour(uint8_t h, uint8_t s, uint8_t v)
+void set_hsv_colour(int h, int s, int v)
 {
     for(int i=0; i<COLUMN; i++)
     {
@@ -219,8 +255,37 @@ void set_hsv_colour(uint8_t h, uint8_t s, uint8_t v)
     }
 }
 
+void rainbow_dot(void)
+{
+    int n = 36;
+
+    for(int i=0; i<COLUMN; i++)
+    {
+        for(int j=0; j<ROWS; j++)
+        {
+            ledColours[i][j].hue = n;
+            ledColours[i][j].sat = 230;
+            ledColours[i][j].val = 240;
+            n+=5;
+        }
+    }
+
+}
+
 int normalise_level(int index)
 {
-    int val = ledVALS[index] / 1800.0;
+    int val = ledVALS[index] / 100.0;  // 1800.0;
     return constrain(val, 0, 19);
 }
+
+void reverseArray(double arr[], int start, int end)
+{
+    while (start < end)
+    {
+        int temp = arr[start]; 
+        arr[start] = arr[end];
+        arr[end] = temp;
+        start++;
+        end--;
+    } 
+}  
