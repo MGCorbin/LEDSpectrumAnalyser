@@ -8,12 +8,13 @@
 #include <defs.h>
 #include <types.h>
 #include <FastLED.h>
+#include <math.h>
 
 /* Definitions */
 #define COLUMN      15
 #define ROWS        20
 #define NUM_LEDS    COLUMN * ROWS
-#define LED_PIN     33
+#define LED_PIN     23
 
 #define SAMPLES     1024
 #define AUDIO_PIN   34
@@ -23,9 +24,9 @@
 CRGB leds[NUM_LEDS];
 typedef struct
 {
-    uint8_t hue;
-    uint8_t sat;
-    uint8_t val;
+    int hue;
+    int sat;
+    int val;
     int nled;
     bool active;
 } led_t;
@@ -37,6 +38,15 @@ arduinoFFT FFT = arduinoFFT();
 unsigned int sampling_period_us;
 unsigned long microseconds, newTime;
 double ledVALS[COLUMN];
+double e_val;
+
+enum LedEffect
+{
+    column_grad,
+    column_static,
+    dot_grad,
+    dot_static
+};
 
 /*
 * NOTES:
@@ -47,6 +57,8 @@ double ledVALS[COLUMN];
 void setup()
 {
     Serial.begin(115200);
+
+    e_val = FindE(COLUMN, SAMPLES/2);
 
     int count = 0;
     for(int i=0; i<COLUMN; ++i)
@@ -61,6 +73,36 @@ void setup()
     FastLED.setBrightness(50);
 
     sampling_period_us = round(1000000 * (1.0 / SAMPLING_FREQUENCY));
+}
+
+double FindE(int bands, int bins) {
+  double increment=0.1, eTest, n;
+  int b, count, d;
+
+  for (eTest = 1; eTest < bins; eTest += increment) 
+  {     // Find E through brute force calculations
+    count = 0;
+    for (b = 0; b < bands; b++) 
+    {                        // Calculate full log values
+      n = pow(eTest, b);
+      d = (int)(n + 0.5);
+      count += d;
+    }
+    if (count > bins) 
+    {                        // We calculated over our last bin
+      eTest -= increment;    // Revert back to previous calculation increment
+      increment /= 10.0;     // Get a finer detailed calculation & increment a decimal point lower
+    }
+    else if (count == bins)     // We found the correct E
+    {
+        return eTest;        // Return calculated E
+    }
+    if (increment < 0.0000001)        // Ran out of calculations. Return previous E. Last bin will be lower than (bins-1)
+    {
+      return (eTest - increment);
+    }
+  }
+  return 0;                  // Return error 0
 }
 
 void loop()
@@ -81,30 +123,64 @@ void loop()
     FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
     FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
 
-    int step = round(((SAMPLES/2)/COLUMN) + 0.5);           // horrible but works...
-    int count = 0;
-    for(int i=0; i<(SAMPLES/2); i+=step)
-    {
-        /* sort into led columns */
-        ledVALS[count] = 0;
-        for(int j=0; j<step; j++)
-        {
-            ledVALS[count] += vReal[i+j];
-        }
-        ledVALS[count] /= step;
 
-        count ++;
+    double n;
+    int count = 1, d = 0;
+    for(int i=0; i<COLUMN; i++)
+    {
+        n = pow(e_val, i);          // e is calculated in setup and determines how we space our bins on a log scale
+        d = round(n);
+  
+        ledVALS[i] = 0;
+        for(int j=count; j<(count+d); j++)     // depending on the value of d we sum j fft bins into a single led bin
+        {
+            if(vReal[j] > 200.0)
+                ledVALS[i] += vReal[j];
+        }
+        count += d;                      // update count to start with the next fft bin
     }
 
-    set_hsv_colour(0, 100, 100);
-    full_column();
-    updateLEDs();
-}
+    reverseArray(ledVALS, 0, COLUMN-1);     // reverse to make bass on left (hardware is inverted)
 
-int normalise_level(int index)
-{
-    int val = ledVALS[index] / 1800.0;
-    return constrain(val, 0, 19);
+    static int oldMillis = 0, ledEffect = 1;
+
+    if(millis() - oldMillis > 10000)
+    {
+        oldMillis = millis();
+
+        // ledEffect++;
+        if(ledEffect > 3)
+        {
+            ledEffect = 0;
+        }
+    }
+
+    switch(ledEffect)
+    {
+        case 0: 
+            rainbow_dot();
+            full_column();
+            updateLEDs();
+            break;
+
+        case 1:
+            set_hsv_colour(250, 100, 100);
+            full_column();
+            updateLEDs();
+            break;
+
+        case 2:
+            rainbow_dot();
+            dot_column();
+            updateLEDs();
+            break;
+        
+        case 3:
+            set_hsv_colour(150, 240, 250);
+            dot_column();
+            updateLEDs();
+            break;
+    }
 }
 
 void updateLEDs()
@@ -166,7 +242,7 @@ void dot_column()
     }
 }
 
-void set_hsv_colour(uint8_t h, uint8_t s, uint8_t v)
+void set_hsv_colour(int h, int s, int v)
 {
     for(int i=0; i<COLUMN; i++)
     {
@@ -178,3 +254,38 @@ void set_hsv_colour(uint8_t h, uint8_t s, uint8_t v)
         }
     }
 }
+
+void rainbow_dot(void)
+{
+    int n = 36;
+
+    for(int i=0; i<COLUMN; i++)
+    {
+        for(int j=0; j<ROWS; j++)
+        {
+            ledColours[i][j].hue = n;
+            ledColours[i][j].sat = 230;
+            ledColours[i][j].val = 240;
+            n+=5;
+        }
+    }
+
+}
+
+int normalise_level(int index)
+{
+    int val = round(ledVALS[index] / 10000.0);
+    return constrain(val, 0, 19);
+}
+
+void reverseArray(double arr[], int start, int end)
+{
+    while (start < end)
+    {
+        int temp = arr[start]; 
+        arr[start] = arr[end];
+        arr[end] = temp;
+        start++;
+        end--;
+    } 
+}  
