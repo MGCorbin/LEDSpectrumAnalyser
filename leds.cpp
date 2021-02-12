@@ -5,11 +5,64 @@
 
 #include "leds.h"
 
-Leds::Leds(double &vals[SAMPLES], int brightness)
-        :m_ledVals(vals), m_brightness(brightness)
+Leds::Leds(double vals[], int brightness)
+        :m_vals(vals), m_brightness(brightness)
 {
-    FastLED.addLeds<WS2812B, LED_PIN, GRB>(m_leds, COLUMN*ROWS).setCorrection(TypicalLEDStrip);
-    FastLED.setBrightness(50);
+    FastLED.addLeds<WS2812B, LED_PIN, GRB>(m_leds, 300).setCorrection(TypicalLEDStrip);
+    FastLED.setBrightness(m_brightness);
+
+    int count = 0;
+    for(int i=0; i<COLUMN; ++i)
+    {
+        for(int j=0; j<ROWS; j++)
+        {
+            m_colours[i][j].nled = count;
+            count ++;
+        }
+    }
+}
+
+void Leds::handle(void)
+{
+    static int oldMillis = 0, ledEffect = 1;
+
+    reverse();
+
+    if(millis() - oldMillis > 10000)
+    {
+        oldMillis = millis();
+
+        // ledEffect++;
+        if(ledEffect > 3)
+        {
+            ledEffect = 0;
+        }
+    }
+
+    switch(ledEffect)
+    {
+        case 0: 
+            rainbowDot();
+            fullColumn();
+            break;
+
+        case 1:
+            setHSVcol(250, 100, 100);
+            fullColumn();
+            break;
+
+        case 2:
+            rainbowDot();
+            dotColumn();
+            break;
+        
+        case 3:
+            setHSVcol(250, 100, 100);
+            dotColumn();
+            break;
+    }
+
+    update();
 }
 
 void Leds::update()
@@ -20,7 +73,7 @@ void Leds::update()
         {
             if(m_colours[i][j].active)
             {
-                leds[m_colours[i][j].nled] = CHSV(m_colours[i][j].hue, m_colours[i][j].sat, m_colours[i][j].val);
+                m_leds[m_colours[i][j].nled] = CHSV(m_colours[i][j].hue, m_colours[i][j].sat, m_colours[i][j].val);
             }
             else
             {
@@ -31,7 +84,7 @@ void Leds::update()
     FastLED.show();
 }
 
-void Leds::full_column()
+void Leds::fullColumn()
 {
     int level = 0;
     for(int i=0; i<COLUMN; i++)
@@ -56,7 +109,7 @@ void Leds::dotColumn()
     int level = 0;
     for(int i=0; i<COLUMN; i++)
     {
-        level = normalise_level(i);
+        level = normalise(i);
         for(int j=0; j<ROWS; j++)
         {
             if(j == level)
@@ -101,13 +154,14 @@ void Leds::rainbowDot(void)
 
 }
 
-void Leds::reverse(double arr[], int start, int end)
+void Leds::reverse()
 {
+    int start = 0, end = COLUMN-1;
     while (start < end)
     {
-        int temp = arr[start]; 
-        arr[start] = arr[end];
-        arr[end] = temp;
+        int temp = m_vals[start]; 
+        m_vals[start] = m_vals[end];
+        m_vals[end] = temp;
         start++;
         end--;
     } 

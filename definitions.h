@@ -5,5 +5,5 @@
 
 #define COLUMN      15
 #define ROWS        20
-
 #define SAMPLES     1024
+#define LED_PIN     23

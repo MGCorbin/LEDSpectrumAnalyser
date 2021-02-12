@@ -26,23 +26,24 @@ enum LedEffect
 
 class Leds
 {
-    Leds(double &vReal[SAMPLES]);
-
 public:
+    Leds(double vals[], int brightness);
+
+    void handle();
     void update();
     void fullColumn();
     void dotColumn();
     void setHSVcol(int h, int s, int v);
     void rainbowDot();
-    void reverse(double arr[], int start, int end);
+    void reverse();
 
 private:
-    void normalise();
+    int normalise(int index);
 
 
 private:
 
-    double &m_vals[COLUMN];
+    double *m_vals;
     int m_brightness;
 
     led_t m_colours[COLUMN][ROWS];
