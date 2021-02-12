@@ -135,7 +135,7 @@ void loop()
         for(int j=count; j<(count+d); j++)     // depending on the value of d we sum j fft bins into a single led bin
         {
             if(vReal[j] > 200.0)
-                ledVALS[i] += 20*log10(vReal[j]);
+                ledVALS[i] += vReal[j];
         }
         count += d;                      // update count to start with the next fft bin
     }
@@ -274,7 +274,7 @@ void rainbow_dot(void)
 
 int normalise_level(int index)
 {
-    int val = ledVALS[index] / 100.0;  // 1800.0;
+    int val = round(ledVALS[index] / 10000.0);
     return constrain(val, 0, 19);
 }
 
