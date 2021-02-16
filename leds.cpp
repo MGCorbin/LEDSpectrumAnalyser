@@ -25,6 +25,7 @@ Leds::Leds(double vals[], int brightness)
 void Leds::handle(void)
 {
     static int oldMillis = 0, ledEffect = 1;
+    static int rainbowTime = 0;
 
     reverse();
 
@@ -32,8 +33,8 @@ void Leds::handle(void)
     {
         oldMillis = millis();
 
-        // ledEffect++;
-        if(ledEffect > 3)
+        ledEffect++;
+        if(ledEffect > 2)
         {
             ledEffect = 0;
         }
@@ -50,13 +51,22 @@ void Leds::handle(void)
             setHSVcol(250, 100, 100);
             fullColumn();
             break;
-
+            
         case 2:
+            if(millis() - rainbowTime > 15)
+            {
+                dynamicRainbow();
+                rainbowTime = millis();
+            }
+            fullColumn();
+            break;
+
+        case 3:
             rainbowDot();
             dotColumn();
             break;
         
-        case 3:
+        case 4:
             setHSVcol(250, 100, 100);
             dotColumn();
             break;
@@ -152,6 +162,27 @@ void Leds::rainbowDot(void)
         }
     }
 
+}
+
+void Leds::dynamicRainbow(void)
+{
+    static int hue = 0;
+
+    for(int i=0; i<COLUMN; i++)
+    {
+        for(int j=0; j<ROWS; j++)
+        {
+            m_colours[i][j].hue = hue;
+            m_colours[i][j].sat = 230;
+            m_colours[i][j].val = 240;
+        }
+    }
+    hue++;
+
+    if(hue > 255)
+    {
+        hue = 0;
+    }
 }
 
 void Leds::reverse()

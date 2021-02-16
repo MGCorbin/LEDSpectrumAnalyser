@@ -8,21 +8,12 @@
 
 typedef struct
 {
-    int hue;
-    int sat;
-    int val;
+    uint8_t hue;
+    uint8_t sat;
+    uint8_t val;
     int nled;
     bool active;
 } led_t;
-
-
-enum LedEffect
-{
-    column_grad,
-    column_static,
-    dot_grad,
-    dot_static
-};
 
 class Leds
 {
@@ -30,14 +21,15 @@ public:
     Leds(double vals[], int brightness);
 
     void handle();
+
+private:
     void update();
     void fullColumn();
     void dotColumn();
     void setHSVcol(int h, int s, int v);
     void rainbowDot();
+    void dynamicRainbow();
     void reverse();
-
-private:
     int normalise(int index);
 
 
