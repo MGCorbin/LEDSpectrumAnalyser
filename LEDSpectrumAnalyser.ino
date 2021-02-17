@@ -53,7 +53,7 @@ double FindE(int bands, int bins) {
     if (count > bins) 
     {                        // We calculated over our last bin
       eTest -= increment;    // Revert back to previous calculation increment
-      increment /= 10.0;     // Get a finer detailed calculation & increment a decimal point lower
+      increment /= 10.0;     // Get a finer detailed calculation & increment a de3cimal point lower
     }
     else if (count == bins)     // We found the correct E
     {
@@ -87,19 +87,20 @@ void loop()
 
 
     double n;
-    int count = 1, d = 0;
+    int lowBin = 1, highBin = 0;
     for(int i=0; i<COLUMN; i++)
     {
         n = pow(e_val, i);          // e is calculated in setup and determines how we space our bins on a log scale
-        d = round(n);
+        highBin = round(n);
   
         ledVALS[i] = 0;
-        for(int j=count; j<(count+d); j++)     // depending on the value of d we sum j fft bins into a single led bin
+        for(int j=lowBin; j<(lowBin+highBin); j++)     // depending on the value of d we sum j fft bins into a single led column
         {
             if(vReal[j] > 200.0)
                 ledVALS[i] += vReal[j];
         }
-        count += d;                      // update count to start with the next fft bin
+        ledVALS[i] /= ((lowBin+highBin) - lowBin) + 1;
+        lowBin += highBin;                      // update count to start with the next fft bin
     }
 
     leds.handle();
