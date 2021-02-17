@@ -12,7 +12,7 @@ Leds::Leds(double vals[], int brightness)
     FastLED.setBrightness(m_brightness);
 
     int count = 0;
-    for(int i=0; i<COLUMN; ++i)
+    for(int i=COLUMN-1; i>=0; i--)      // label the columns backwards as they are backwards in hardware...
     {
         for(int j=0; j<ROWS; j++)
         {
@@ -27,9 +27,7 @@ void Leds::handle(void)
     static int oldMillis = 0, ledEffect = 1;
     static int rainbowTime = 0;
 
-    reverse();
-
-    if(millis() - oldMillis > 10000)
+    if(millis() - oldMillis > 60000)
     {
         oldMillis = millis();
 
@@ -53,7 +51,7 @@ void Leds::handle(void)
             break;
             
         case 2:
-            if(millis() - rainbowTime > 15)
+            if(millis() - rainbowTime > 20)
             {
                 dynamicRainbow();
                 rainbowTime = millis();
@@ -200,7 +198,15 @@ void Leds::reverse()
 
 int Leds::normalise(int index)
 {
-    int val = round(m_vals[index] / 15000.0);
+    int val;
+    if(m_vals[index] > 0)       // only take logs on non zero positive vals
+    {
+        val = round(20*log10(m_vals[index])/10.0);
+    }
+    else
+    {
+        val = 0;
+    }
     return constrain(val, 0, 19);
 }
 
