@@ -8,10 +8,10 @@
 #include <defs.h>
 #include <types.h>
 #include <math.h>
-#include "BluetoothSerial.h"
 
 #include "definitions.h"
 #include "leds.h"
+#include "btcomms.h"
 
 /* Local Definitions */
 #define AUDIO_PIN   34
@@ -29,19 +29,12 @@ double e_val;
 
 Leds leds(ledVALS, 50);
 
-BluetoothSerial SerialBT;
-
-#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
-#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
-#endif
+BTComms btComms("ESP32");
 
 
 void setup()
 {
   Serial.begin(115200);
-  SerialBT.begin("ESP32"); //Bluetooth device name
-  Serial.println("The device started, now you can pair it with bluetooth!");
-
   e_val = FindE(COLUMN, SAMPLES/2);
 
   sampling_period_us = round(1000000 * (1.0 / SAMPLING_FREQUENCY));
@@ -80,50 +73,41 @@ double FindE(int bands, int bins)
 
 void loop()
 {
-
-  // for(int i=0; i<SAMPLES; i++)
-  // {
-  //     newTime = micros();
-  //     vReal[i] = analogRead(AUDIO_PIN);
-  //     vImag[i] = 0;
-  //     while((micros() - newTime) < sampling_period_us)
-  //     {
-  //         /* wait */
-  //     }
-  // }
-  // FFT.DCRemoval(vReal, SAMPLES);
-  // FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
-  // FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
-  // FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
-
-
-  // double n;
-  // int lowBin = 1, highBin = 0;
-  // for(int i=0; i<COLUMN; i++)
-  // {
-  //     n = pow(e_val, i);                              // e is calculated in setup and determines how we space our bins on a log scale
-  //     highBin = round(n);
-
-  //     ledVALS[i] = 0;
-  //     for(int j=lowBin; j<(lowBin+highBin); j++)      // depending on the value of d we sum j fft bins into a single led column
-  //     {
-  //         if(vReal[j] > 700.0)                        // village noise filter
-  //             ledVALS[i] += vReal[j];
-  //     }
-  //     ledVALS[i] /= ((lowBin+highBin) - lowBin) + 1;
-  //     lowBin += highBin;                              // update count to start with the next fft bin
-  // }
-
-  // leds.handle();
-
-  if (Serial.available()) 
+  for(int i=0; i<SAMPLES; i++)
   {
-    SerialBT.write(Serial.read());
+      newTime = micros();
+      vReal[i] = analogRead(AUDIO_PIN);
+      vImag[i] = 0;
+      while((micros() - newTime) < sampling_period_us)
+      {
+          /* wait */
+      }
+  }
+  FFT.DCRemoval(vReal, SAMPLES);
+  FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+  FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
+  FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
+
+
+  double n;
+  int lowBin = 1, highBin = 0;
+  for(int i=0; i<COLUMN; i++)
+  {
+      n = pow(e_val, i);                              // e is calculated in setup and determines how we space our bins on a log scale
+      highBin = round(n);
+
+      ledVALS[i] = 0;
+      for(int j=lowBin; j<(lowBin+highBin); j++)      // depending on the value of d we sum j fft bins into a single led column
+      {
+          if(vReal[j] > 700.0)                        // village noise filter
+              ledVALS[i] += vReal[j];
+      }
+      ledVALS[i] /= ((lowBin+highBin) - lowBin) + 1;
+      lowBin += highBin;                              // update count to start with the next fft bin
   }
 
-  if (SerialBT.available()) 
-  {
-    Serial.write(SerialBT.read());
-  }
-  delay(20);
+  leds.handle();
+
+  btComms.read();
+  btComms.write();
 }
