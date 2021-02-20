@@ -37,7 +37,8 @@ void setup()
     sampling_period_us = round(1000000 * (1.0 / SAMPLING_FREQUENCY));
 }
 
-double FindE(int bands, int bins) {
+double FindE(int bands, int bins) 
+{
   double increment=0.1, eTest, n;
   int b, count, d;
 
