@@ -27,7 +27,7 @@ void Leds::handle(void)
     static int oldMillis = 0, ledEffect = 1;
     static int rainbowTime = 0;
 
-    if(millis() - oldMillis > 60000)
+    if(millis() - oldMillis > 20000)
     {
         oldMillis = millis();
 
