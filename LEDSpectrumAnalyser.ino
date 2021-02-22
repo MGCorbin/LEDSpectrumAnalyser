@@ -8,8 +8,10 @@
 #include <defs.h>
 #include <types.h>
 #include <math.h>
+
 #include "definitions.h"
 #include "leds.h"
+#include "btcomms.h"
 
 /* Local Definitions */
 #define AUDIO_PIN   34
@@ -27,14 +29,15 @@ double e_val;
 
 Leds leds(ledVALS, 50, 2.2);
 
+BTComms btComms("ESP32");
+
 
 void setup()
 {
-    Serial.begin(115200);
+  Serial.begin(115200);
+  e_val = FindE(COLUMN, SAMPLES/2);
 
-    e_val = FindE(COLUMN, SAMPLES/2);
-
-    sampling_period_us = round(1000000 * (1.0 / SAMPLING_FREQUENCY));
+  sampling_period_us = round(1000000 * (1.0 / SAMPLING_FREQUENCY));
 }
 
 double FindE(int bands, int bins) 
@@ -70,7 +73,6 @@ double FindE(int bands, int bins)
 
 void loop()
 {
-
     for(int i=0; i<SAMPLES; i++)
     {
         newTime = micros();
@@ -104,5 +106,6 @@ void loop()
         lowBin += highBin;                              // update count to start with the next fft bin
     }
 
-    leds.handle();
+  btComms.read();
+  btComms.write();
 }
