@@ -18,7 +18,7 @@ typedef struct
 class Leds
 {
 public:
-    Leds(double vals[], int brightness);
+    Leds(double vals[], int brightness, double gain);
 
     void handle();
 
@@ -37,6 +37,7 @@ private:
 
     double *m_vals;
     int m_brightness;
+    double m_gain;
 
     led_t m_colours[COLUMN][ROWS];
     CRGB m_leds[COLUMN*ROWS];

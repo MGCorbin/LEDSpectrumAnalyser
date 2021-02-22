@@ -5,8 +5,8 @@
 
 #include "leds.h"
 
-Leds::Leds(double vals[], int brightness)
-        :m_vals(vals), m_brightness(brightness)
+Leds::Leds(double vals[], int brightness, double gain)
+        :m_vals(vals), m_brightness(brightness), m_gain(gain)
 {
     FastLED.addLeds<WS2812B, LED_PIN, GRB>(m_leds, 300).setCorrection(TypicalLEDStrip);
     FastLED.setBrightness(m_brightness);
@@ -201,7 +201,7 @@ int Leds::normalise(int index)
     int val;
     if(m_vals[index] > 0)       // only take logs on non zero positive vals
     {
-        val = round(20*log10(m_vals[index])/8.0);
+        val = round(20*log10(m_vals[index]) / 2.2f);
     }
     else
     {
