@@ -25,13 +25,13 @@ Leds::Leds(double vals[], int brightness, double gain)
 void Leds::handle(void)
 {
     static int oldMillis = 0, ledEffect = 1;
-    static int rainbowTime = 0;
+    static int deltaTime = 0;
 
     if(millis() - oldMillis > 20000)
     {
         oldMillis = millis();
 
-        ledEffect++;
+        // ledEffect++;
         if(ledEffect > 2)
         {
             ledEffect = 0;
@@ -44,27 +44,40 @@ void Leds::handle(void)
             rainbowDot();
             fullColumn();
             break;
-
+        
         case 1:
+            if(millis() - deltaTime > 100)
+            {
+                for(int i=0; i<COLUMN; i++)
+                {
+                    m_maxLevel[i] --;
+                }
+                deltaTime = millis();
+            }
+            fullColumnMax();
+            rainbowDot();
+            break;
+
+        case 2:
             setHSVcol(250, 100, 100);
             fullColumn();
             break;
             
-        case 2:
-            if(millis() - rainbowTime > 20)
+        case 3:
+            if(millis() - deltaTime > 20)
             {
                 dynamicRainbow();
-                rainbowTime = millis();
+                deltaTime = millis();
             }
             fullColumn();
             break;
 
-        case 3:
+        case 4:
             rainbowDot();
             dotColumn();
             break;
         
-        case 4:
+        case 5:
             setHSVcol(250, 100, 100);
             dotColumn();
             break;
@@ -101,6 +114,30 @@ void Leds::fullColumn()
         for(int j=0; j<ROWS; j++)
         {
             if(j <= level)
+            {
+                m_colours[i][j].active = true;
+            }
+            else
+            {
+                m_colours[i][j].active = false;
+            }
+        }
+    }
+}
+
+void Leds::fullColumnMax()
+{
+    int level = 0;
+    for(int i=0; i<COLUMN; i++)
+    {
+        level = normalise(i);
+        if(level > m_maxLevel[i])
+        {
+            m_maxLevel[i] = level;
+        }
+        for(int j=0; j<ROWS; j++)
+        {
+            if(j <= level || j == m_maxLevel[i])
             {
                 m_colours[i][j].active = true;
             }
@@ -180,6 +217,16 @@ void Leds::dynamicRainbow(void)
     if(hue > 255)
     {
         hue = 0;
+    }
+}
+
+void Leds::setMaxCol(uint8_t h, uint8_t s, uint8_t v)
+{
+    for(int i=0; i<COLUMN; i++)
+    {
+        m_colours[i][m_maxLevel[i]].hue = h;
+        m_colours[i][m_maxLevel[i]].sat = s;
+        m_colours[i][m_maxLevel[i]].val = v;
     }
 }
 
