@@ -201,7 +201,7 @@ int Leds::normalise(int index)
     int val;
     if(m_vals[index] > 0)       // only take logs on non zero positive vals
     {
-        val = round(20*log10(m_vals[index]) / 2.2f);
+        val = round(20*log10(m_vals[index]) / m_gain);
     }
     else
     {
