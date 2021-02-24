@@ -3,6 +3,8 @@
 * Date Created: 12/02/21
 */
 
+#pragma once
+
 #include <FastLED.h>
 #include "definitions.h"
 
@@ -22,6 +24,12 @@ public:
 
     void handle();
 
+    int getEffect() const;
+    void setEffect(int effect);
+
+    int getAttenuation() const;
+    void setAttenuation(double attenuation);
+
 private:
     void update();
     void fullColumn();
@@ -34,13 +42,13 @@ private:
     void reverse();
     int normalise(int index);
 
-
 private:
 
     double *m_vals;
     int m_brightness;
-    double m_gain;
+    double m_attenuation;
     int m_maxLevel[COLUMN];
+    int m_effect;
 
     led_t m_colours[COLUMN][ROWS];
     CRGB m_leds[COLUMN*ROWS];

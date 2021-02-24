@@ -6,7 +6,7 @@
 #include "leds.h"
 
 Leds::Leds(double vals[], int brightness, double gain)
-        :m_vals(vals), m_brightness(brightness), m_gain(gain)
+        :m_vals(vals), m_brightness(brightness), m_attenuation(gain)
 {
     FastLED.addLeds<WS2812B, LED_PIN, GRB>(m_leds, 300).setCorrection(TypicalLEDStrip);
     FastLED.setBrightness(m_brightness);
@@ -24,21 +24,14 @@ Leds::Leds(double vals[], int brightness, double gain)
 
 void Leds::handle(void)
 {
-    static int oldMillis = 0, ledEffect = 1;
-    static int deltaTime = 0;
+    static int oldMillis = 0, deltaTime = 0;
 
-    if(millis() - oldMillis > 20000)
+    if(m_effect > 5)
     {
-        oldMillis = millis();
-
-        // ledEffect++;
-        if(ledEffect > 2)
-        {
-            ledEffect = 0;
-        }
+        m_effect = 0;
     }
 
-    switch(ledEffect)
+    switch(m_effect)
     {
         case 0: 
             rainbowDot();
@@ -84,6 +77,26 @@ void Leds::handle(void)
     }
 
     update();
+}
+
+int Leds::getEffect() const
+{
+    return m_effect;
+}
+
+void Leds::setEffect(int effect)
+{
+    m_effect = effect;
+}
+
+int Leds::getAttenuation() const
+{
+    return m_attenuation;
+}
+
+void Leds::setAttenuation(double attenuation)
+{
+    m_attenuation = attenuation;
 }
 
 void Leds::update()
@@ -248,7 +261,7 @@ int Leds::normalise(int index)
     int val;
     if(m_vals[index] > 0)       // only take logs on non zero positive vals
     {
-        val = round(20*log10(m_vals[index]) / m_gain);
+        val = round(20*log10(m_vals[index]) / m_attenuation);
     }
     else
     {
