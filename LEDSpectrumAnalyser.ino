@@ -29,12 +29,13 @@ double e_val;
 
 Leds leds(ledVALS, 50, 2.2);
 
-BTComms btComms("ESP32");
+BTComms btComms("ESP32", leds);
 
 
 void setup()
 {
   Serial.begin(115200);
+  btComms.init();
   e_val = FindE(COLUMN, SAMPLES/2);
 
   sampling_period_us = round(1000000 * (1.0 / SAMPLING_FREQUENCY));
@@ -73,38 +74,40 @@ double FindE(int bands, int bins)
 
 void loop()
 {
-    for(int i=0; i<SAMPLES; i++)
+  for(int i=0; i<SAMPLES; i++)
+  {
+    newTime = micros();
+    vReal[i] = (((double)analogRead(AUDIO_PIN)/4095.0f) * 3.3f) - 1.5f;
+    vImag[i] = 0;
+    while((micros() - newTime) < sampling_period_us)
     {
-        newTime = micros();
-        vReal[i] = (((double)analogRead(AUDIO_PIN)/4095.0f) * 3.3f) - 1.5f;
-        vImag[i] = 0;
-        while((micros() - newTime) < sampling_period_us)
-        {
-            /* wait */
-        }
+        /* wait */
     }
-    //FFT.DCRemoval(vReal, SAMPLES);
-    FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
-    FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
-    FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
+  }
+  //FFT.DCRemoval(vReal, SAMPLES);
+  FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+  FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
+  FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
 
 
-    double n;
-    int lowBin = 1, highBin = 0;
-    for(int i=0; i<COLUMN; i++)
+  double n;
+  int lowBin = 2, highBin = 0;
+  for(int i=0; i<COLUMN; i++)
+  {
+    n = pow(e_val, i);                              // e is calculated in setup and determines how we space our bins on a log scale
+    highBin = round(n);
+
+    ledVALS[i] = 0;
+    for(int j=lowBin; j<(lowBin+highBin); j++)      // depending on the value of d we sum j fft bins into a single led column
     {
-        n = pow(e_val, i);                              // e is calculated in setup and determines how we space our bins on a log scale
-        highBin = round(n);
-  
-        ledVALS[i] = 0;
-        for(int j=lowBin; j<(lowBin+highBin); j++)      // depending on the value of d we sum j fft bins into a single led column
-        {
-            //if(vReal[j] > 700.0)                        // village noise filter
-          ledVALS[i] += vReal[j];
-        }
-        ledVALS[i] /= ((lowBin+highBin) - lowBin) + 1;
-        lowBin += highBin;                              // update count to start with the next fft bin
+        //if(vReal[j] > 700.0)                        // village noise filter
+      ledVALS[i] += vReal[j];
     }
+    ledVALS[i] /= ((lowBin+highBin) - lowBin) + 1;
+    lowBin += highBin;                              // update count to start with the next fft bin
+  }
+
+  leds.handle();
 
   btComms.read();
   btComms.write();
