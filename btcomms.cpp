@@ -6,8 +6,12 @@
 
 #define BT_DEBUG
 
-BTComms::BTComms(const char *localName)
-    : m_localName(localName)
+BTComms::BTComms(const char *localName, Leds &leds)
+    : m_localName(localName), m_BT(), m_leds(leds)
+{
+}
+
+void BTComms::init()
 {
     m_BT.begin(m_localName);
 #ifdef BT_DEBUG
@@ -27,6 +31,9 @@ void BTComms::read()
 {
     if (m_BT.available()) 
     {
-        Serial.write(m_BT.read());
+        if(m_BT.read() == 'M')
+        {
+            m_leds.setEffect(m_leds.getEffect() + 1);
+        }
     }
 }
