@@ -31,6 +31,9 @@ Leds leds(ledVALS, 50, 2.2);
 
 BTComms btComms("ESP32", leds);
 
+/* Local Functions */
+double FindE(int bands, int bins);
+
 
 void setup()
 {
